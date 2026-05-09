@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  DOCTOR
+  NURSE
+}
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  NIGHT
+}
+
+model Employee {
+  id              String       @id @default(uuid())
+  name            String
+  role            Role
+  department      String       
+  maxHoursPerWeek Int          @default(40)
+  preferredShift  ShiftType?
+  unavailableDays Int[]        
+  wagePerHour     Float
+  assignments     Assignment[]
+}
+
+model Shift {
+  id              String       @id @default(uuid())
+  dayOfWeek       Int          
+  shiftType       ShiftType
+  department      String
+  requiredDoctors Int
+  requiredNurses  Int
+  assignments     Assignment[]
+}
+
+model Assignment {
+  id               String          @id @default(uuid())
+  employeeId       String
+  shiftId          String
+  employee         Employee        @relation(fields: [employeeId], references: [id])
+  shift            Shift           @relation(fields: [shiftId], references: [id])
+  scheduleResultId String?
+  ScheduleResult   ScheduleResult? @relation(fields: [scheduleResultId], references: [id])
+}
+
+model ScheduleResult {
+  id            String       @id @default(uuid())
+  algorithmName String
+  totalCost     Float
+  hardPenalty   Float
+  softPenalty   Float
+  fitnessScore  Float
+  runtime       Float        
+  createdAt     DateTime     @default(now())
+  assignments   Assignment[]
+}
